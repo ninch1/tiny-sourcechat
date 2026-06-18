@@ -76,19 +76,33 @@ function retrieveTopChunks(question, limit) {
 }
 
 function askTinyRag(question) {
-  const res = retrieveTopChunks(question, 3);
+  const results = retrieveTopChunks(question, 3);
 
-  if (res.length === 0) {
+  if (results.length === 0) {
     return "I could not find relevant information in the documents.";
   }
 
-  return `
-  Question: ${question}
-  Number of retrieved sources: ${res.length}
-  Retrieved source${res.length > 1 ? "s" : ""}: ${res.map((r) => `${r.chunk.id}: ${r.chunk.title} (keywords: ${r.keywords.join(", ")}) (score: ${r.score})`).join(", ")}
+  const answerText = results
+    .map((result, index) => `[${index + 1}] ${result.chunk.text}`)
+    .join("\n");
 
+  const sourcesText = results
+    .map(
+      (result, index) =>
+        `[${index + 1}] ${result.chunk.title} - score: ${result.score} - matched: ${result.keywords.join(", ")}`,
+    )
+    .join("\n");
+
+  return `
+  Question:
+  ${question}
+  
   Answer:
-  Based on the documents: ${res.map((r) => `text: "${r.chunk.text}"`).join("\n")}
+  Based on the documents:
+  ${answerText}
+  
+  Sources:
+  ${sourcesText}
   `;
 }
 
